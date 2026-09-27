@@ -1,7 +1,7 @@
 from langchain.tools import tool
 
 @tool
-def weather_condition():
+def get_weather():
     """_summary_
     """
     
