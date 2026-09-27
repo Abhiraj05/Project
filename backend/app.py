@@ -93,3 +93,8 @@ async def login(user: UserLoginSchema, db: AsyncSession = Depends(create_db_conn
     except:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="login failed !")
+
+
+@app.websocket("user/chat/")
+async def chat_with_agent():
+    print("chat with agent")
