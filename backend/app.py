@@ -18,6 +18,8 @@ app = FastAPI()
 middleware(app)
 
 # test route
+
+
 @app.get("/")
 def test():
     return {"message": "server is running...."}
@@ -93,6 +95,16 @@ async def login(user: UserLoginSchema, db: AsyncSession = Depends(create_db_conn
     except:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="login failed !")
+
+
+@app.get("user/profile")
+def get_user_profile():
+    print("get user profile")
+
+
+@app.put("user/update-profile")
+def update_user_profile():
+    print("update user profile")
 
 
 @app.websocket("user/chat/")
