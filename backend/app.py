@@ -9,7 +9,7 @@ from sqlalchemy import select
 from schemas.user_schema import UserSchema
 from schemas.user_login_schema import UserLoginSchema
 from sql.models.user_model import User
-
+from cache.redis_client import redis_connection
 
 # app initialise
 app = FastAPI()
