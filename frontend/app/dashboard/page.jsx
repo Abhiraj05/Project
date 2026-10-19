@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import TripPlanningForm from "@/components/dashboard/TripPlanningForm";
+import TripProposalCard from "@/components/dashboard/TripProposalCard";
+import TripHistory from "@/components/dashboard/TripHistory";
 
 const starterPrompts = [
   {
@@ -751,10 +754,21 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         <div className="relative mx-auto max-w-[1600px] px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
-          <div className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-blue-500/[0.07] blur-[120px]" />
+          <motion.div
+            aria-hidden="true"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-blue-500/[0.07] blur-[120px]"
+          />
 
           {/* Heading */}
-          <div className="relative mb-7 flex flex-wrap items-end justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="relative mb-7 flex flex-wrap items-end justify-between gap-4"
+          >
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
                 Your AI travel companion
@@ -770,14 +784,16 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <button
+            <motion.button
               type="button"
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.97 }}
               onClick={resetChat}
               className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-slate-300 transition hover:border-blue-400/30 hover:text-white"
             >
               + New conversation
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
           {/* Summary */}
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
@@ -818,7 +834,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Single AI assistant chat */}
-          <section className="overflow-hidden rounded-3xl border border-white/[0.08] bg-slate-900/70 shadow-2xl shadow-black/10">
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.12, ease: "easeOut" }}
+            className="overflow-hidden rounded-3xl border border-white/[0.08] bg-slate-900/70 shadow-2xl shadow-black/10"
+          >
             {/* Chat header */}
             <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
               <div className="flex items-center gap-3">
@@ -848,8 +869,9 @@ export default function DashboardPage() {
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
                   className={`flex gap-3 ${
                     message.role === "user" ? "flex-row-reverse" : ""
                   }`}
@@ -880,141 +902,11 @@ export default function DashboardPage() {
                         {message.text}
                       </div>
                     ) : (
-                      <div className="w-full overflow-hidden rounded-2xl rounded-tl-md border border-blue-400/20 bg-slate-950/70 text-left sm:min-w-[320px]">
-                        <div className="border-b border-white/[0.07] bg-gradient-to-r from-blue-500/[0.12] to-indigo-500/[0.06] p-5">
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-400">
-                            Your trip proposal
-                          </p>
-
-                          <h3 className="mt-2 text-2xl font-bold">
-                            {message.plan.destination}
-                          </h3>
-
-                          <p className="mt-1 text-xs text-slate-400">
-                            {message.plan.dates}
-                          </p>
-
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {message.plan.categories.map((category) => (
-                              <span
-                                key={category}
-                                className="rounded-full border border-white/[0.08] bg-slate-950/40 px-3 py-1.5 text-xs text-slate-300"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="p-5">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-white/[0.06] bg-slate-900/70 p-3">
-                              <p className="text-[10px] text-slate-500">
-                                Duration
-                              </p>
-
-                              <p className="mt-1 font-semibold">
-                                {message.plan.duration} days
-                              </p>
-                            </div>
-
-                            <div className="rounded-xl border border-white/[0.06] bg-slate-900/70 p-3">
-                              <p className="text-[10px] text-slate-500">
-                                Travelers
-                              </p>
-
-                              <p className="mt-1 font-semibold">
-                                {message.plan.travelers}
-                              </p>
-                            </div>
-                          </div>
-
-                          <h4 className="mt-6 font-semibold">Itinerary</h4>
-
-                          <div className="mt-4 space-y-4">
-                            {message.plan.itinerary.map((day) => (
-                              <div key={day.day} className="flex gap-3">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-lg">
-                                  {day.icon}
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">
-                                    Day {day.day}
-                                  </p>
-
-                                  <h5 className="mt-1 text-sm font-medium">
-                                    {day.title}
-                                  </h5>
-
-                                  <p className="mt-1 text-xs leading-6 text-slate-400">
-                                    {day.description}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="mt-6 border-t border-white/[0.07] pt-5">
-                            <h4 className="font-semibold">
-                              Estimated expenses
-                            </h4>
-
-                            <div className="mt-4 space-y-3">
-                              {message.plan.costs.map((cost) => (
-                                <div
-                                  key={cost.label}
-                                  className="flex items-center justify-between gap-3"
-                                >
-                                  <span className="text-xs text-slate-400">
-                                    {cost.icon} {cost.label}
-                                  </span>
-
-                                  <span className="text-sm font-medium">
-                                    {formatMoney(cost.amount)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="mt-5 flex items-center justify-between border-t border-white/[0.07] pt-5">
-                              <span className="text-sm font-semibold">
-                                Total estimated cost
-                              </span>
-
-                              <span className="text-xl font-bold text-blue-300">
-                                {formatMoney(message.plan.estimatedTotal)}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="mt-5 rounded-xl border border-blue-400/15 bg-blue-500/[0.05] p-4">
-                            <p className="text-xs leading-6 text-slate-300">
-                              I've prepared this proposal based on your
-                              requirements. You can ask me to change the
-                              destination, budget, duration, activities, or
-                              travel preferences. I'll update the plan before
-                              you approve it.
-                            </p>
-                          </div>
-
-                          <div className="mt-5">
-                            {message.plan.status === "Booking requested" ? (
-                              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/[0.08] px-4 py-3 text-center text-sm font-semibold text-emerald-300">
-                                ✓ Trip proposal approved
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                                                  onClick={() => sendMessage("Please ask me for final approval.")}
-                                className="w-full rounded-xl border border-blue-400/25 bg-blue-500/[0.08] px-4 py-3 text-sm font-medium text-blue-300 transition hover:bg-blue-500/[0.14]"
-                              >
-                                Request final approval
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <TripProposalCard
+                        plan={message.plan}
+                        formatMoney={formatMoney}
+                        onRequestApproval={() => sendMessage("Please ask me for final approval.")}
+                      />
                     )}
 
                     <p className="mt-1.5 px-1 text-[10px] text-slate-600">
@@ -1025,152 +917,15 @@ export default function DashboardPage() {
               ))}
 
               {!activePlan && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="ml-0 w-full max-w-2xl overflow-hidden rounded-2xl border border-blue-400/20 bg-slate-950/70 shadow-lg shadow-black/10 sm:ml-12"
-                >
-                  <div className="border-b border-white/[0.07] bg-gradient-to-r from-blue-500/[0.12] to-indigo-500/[0.08] p-5">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-xl">
-                        ✈️
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-white">Plan a trip with TravelAI</h3>
-                        <p className="mt-1 text-xs leading-5 text-slate-400">
-                          Fill in your trip details, then generate a proposal right here in the conversation.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handlePlanningFormSubmit} className="space-y-5 p-5">
-                    <div>
-                      <label htmlFor="planner-destination" className="text-sm font-medium text-slate-200">
-                        Destination
-                      </label>
-                      <input
-                        id="planner-destination"
-                        type="text"
-                        value={planningForm.destination}
-                        onChange={(event) => setPlanningForm((current) => ({ ...current, destination: event.target.value }))}
-                        placeholder="e.g. Goa, Manali, Japan"
-                        required
-                        className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor="planner-start-date" className="text-sm font-medium text-slate-200">
-                          Departure date
-                        </label>
-                        <input
-                          id="planner-start-date"
-                          type="date"
-                          min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
-                          value={planningForm.startDate}
-                          onChange={(event) => setPlanningForm((current) => ({ ...current, startDate: event.target.value }))}
-                          required
-                          className="mt-2 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="planner-end-date" className="text-sm font-medium text-slate-200">
-                          Return date
-                        </label>
-                        <input
-                          id="planner-end-date"
-                          type="date"
-                          min={planningForm.startDate || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
-                          value={planningForm.endDate}
-                          onChange={(event) => setPlanningForm((current) => ({ ...current, endDate: event.target.value }))}
-                          required
-                          className="mt-2 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor="planner-budget" className="text-sm font-medium text-slate-200">
-                          Total budget (INR)
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 mt-1 -translate-y-1/2 text-sm text-slate-400">₹</span>
-                          <input
-                            id="planner-budget"
-                            type="number"
-                            min="1"
-                            value={planningForm.budget}
-                            onChange={(event) => setPlanningForm((current) => ({ ...current, budget: event.target.value }))}
-                            placeholder="25000"
-                            required
-                            className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 py-3 pl-8 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="planner-travelers" className="text-sm font-medium text-slate-200">
-                          Travelers
-                        </label>
-                        <select
-                          id="planner-travelers"
-                          value={planningForm.travelers}
-                          onChange={(event) => setPlanningForm((current) => ({ ...current, travelers: event.target.value }))}
-                          className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        >
-                          {Array.from({ length: 20 }, (_, index) => index + 1).map((number) => (
-                            <option key={number} value={number}>
-                              {number} {number === 1 ? "traveler" : "travelers"}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium text-slate-200">Travel interests</p>
-                      <p className="mt-1 text-xs text-slate-500">Select one or more interests.</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {categories.map((category) => {
-                          const selected = planningForm.categories.includes(category.name);
-                          return (
-                            <button
-                              key={category.name}
-                              type="button"
-                              onClick={() => togglePlanningCategory(category.name)}
-                              aria-pressed={selected}
-                              className={`rounded-full border px-3 py-2 text-xs font-medium transition ${
-                                selected
-                                  ? "border-blue-400 bg-blue-500/15 text-blue-300"
-                                  : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"
-                              }`}
-                            >
-                              {selected ? "✓ " : "+ "}{category.icon} {category.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {planningFormError && (
-                      <p role="alert" className="text-sm text-red-400">{planningFormError}</p>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={isTyping}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {isTyping ? "Generating your request..." : "Generate trip plan"}
-                      {!isTyping && <span aria-hidden="true">→</span>}
-                    </button>
-                    <p className="text-center text-[11px] leading-5 text-slate-500">
-                      Your plan appears in this chat. You can request changes before giving explicit final approval.
-                    </p>
-                  </form>
-                </motion.div>
+                <TripPlanningForm
+                  form={planningForm}
+                  setForm={setPlanningForm}
+                  error={planningFormError}
+                  onSubmit={handlePlanningFormSubmit}
+                  isTyping={isTyping}
+                  categories={categories}
+                  onToggleCategory={togglePlanningCategory}
+                />
               )}
 
               {isTyping && (
@@ -1198,10 +953,15 @@ export default function DashboardPage() {
                 </p>
 
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {starterPrompts.map((item) => (
-                    <button
+                  {starterPrompts.map((item, index) => (
+                    <motion.button
                       key={item.title}
                       type="button"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: index * 0.06 }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         setInput(item.prompt);
                         document
@@ -1213,14 +973,17 @@ export default function DashboardPage() {
                       <span className="text-lg">{item.icon}</span>
                       <span>{item.title}</span>
                       <span className="ml-auto text-slate-600">↗</span>
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Chat input */}
-            <form
+            <motion.form
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.18 }}
               onSubmit={(event) => {
                 event.preventDefault();
                 sendMessage();
@@ -1262,70 +1025,10 @@ export default function DashboardPage() {
                 TravelAI demo · Review and approve the proposal before any
                 booking workflow.
               </p>
-            </form>
-          </section>
+            </motion.form>
+          </motion.section>
 
-          {/* Approved trip history */}
-          <section className="mt-10">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
-                  Your journeys
-                </p>
-
-                <h2 className="mt-2 text-2xl font-bold">Trip history</h2>
-              </div>
-
-              <span className="rounded-full border border-white/[0.08] bg-slate-900 px-3 py-2 text-xs text-slate-400">
-                {trips.length} trips
-              </span>
-            </div>
-
-            {trips.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-slate-900/40 px-6 py-10 text-center">
-                <span className="text-3xl">🧳</span>
-
-                <p className="mt-3 text-sm font-medium">
-                  No approved trips yet
-                </p>
-
-                <p className="mt-2 text-xs text-slate-500">
-                  Your approved proposals will appear here.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {trips.map((trip) => (
-                  <motion.article
-                    key={trip.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-white/[0.08] bg-slate-900/70 p-5"
-                  >
-                    <p className="text-xs text-emerald-300">
-                      ✓ Approved
-                    </p>
-
-                    <h3 className="mt-2 text-lg font-semibold">
-                      {trip.destination}
-                    </h3>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      {trip.dates}
-                    </p>
-
-                    <p className="mt-4 text-xl font-bold text-blue-300">
-                      {formatMoney(trip.estimatedTotal)}
-                    </p>
-
-                    <p className="mt-2 text-xs text-slate-400">
-                      {trip.duration} days · {trip.travelers} travelers
-                    </p>
-                  </motion.article>
-                ))}
-              </div>
-            )}
-          </section>
+          <TripHistory trips={trips} formatMoney={formatMoney} />
 
           <footer className="mt-12 border-t border-white/[0.07] py-6 text-center text-xs text-slate-600">
             © {new Date().getFullYear()} TravelAI · Your journey, thoughtfully planned.

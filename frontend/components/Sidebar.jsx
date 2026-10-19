@@ -8,8 +8,7 @@ const groups = [
   {
     label: "OVERVIEW",
     items: [
-      { name: "Dashboard", href: "/dashboard", icon: "▦" },
-      { name: "Plan a Trip", href: "/chat", icon: "✦", badge: "AI" },
+      { name: "Plan a Trip", href: "/dashboard", icon: "✦", badge: "AI" },
       { name: "My Trips", href: "/history", icon: "🧳" },
       { name: "Destinations", href: "/destinations", icon: "◎" },
     ],
@@ -68,16 +67,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-4 pb-4">
-        <div className="rounded-2xl border border-blue-400/15 bg-gradient-to-br from-blue-500/10 via-slate-900 to-indigo-500/5 p-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">✦</span>
-            <span className="text-sm font-semibold">TravelAI Assistant</span>
-          </div>
-          <p className="mt-3 text-xs leading-5 text-slate-400">Your next adventure is just one conversation away.</p>
-          <Link href="/chat" className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-blue-500 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-400">Start planning →</Link>
-        </div>
-      </div>
+    
 
       <Link href="/profile" className="border-t border-white/[0.07] p-4 transition hover:bg-white/[0.03]">
         <div className="flex items-center gap-3">
