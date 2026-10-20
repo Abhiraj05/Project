@@ -1,3 +1,17 @@
 fastapi[standard]
 langchain
 langgraph
+python-dotenv
+SQLAlchemy  
+psycopg[binary]
+pwdlib[argon2]
+pyjwt
+langchain-google-genai
+langchain_text_splitters   
+redis[hiredis]                      
+langchain-community
+asyncpg 
+langchain-experimental
+alembic 
+bcrypt==4.0.1
+sqlalchemy[asyncio]
