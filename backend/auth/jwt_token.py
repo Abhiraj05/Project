@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from jwt import InvalidKeyError
-from sql.models.user_model import User
+from sql.models.user_profile_model import UserProfile
 from db.db_connection import create_db_connection
 from sqlalchemy import select
 

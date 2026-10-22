@@ -17,6 +17,6 @@ class TripHistory(Base):
     updated_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
+        # server_default=DateTime.now(),
+        # onupdate=DateTime.now(),
     )

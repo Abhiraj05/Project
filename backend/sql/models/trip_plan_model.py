@@ -17,6 +17,7 @@ class CustomTripPlan(Base):
 
 
 class SuggestedTrips(Base):
+    __tablename__="suggested_trips"
     id = Column(Integer, primary_key=True , nullable=False)
     destination_name = Column(String(30) , nullable=False)
     country =  Column(String(30), nullable=False)
