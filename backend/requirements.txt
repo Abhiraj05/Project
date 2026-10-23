@@ -16,4 +16,4 @@ alembic
 bcrypt==4.0.1
 sqlalchemy[asyncio]
 fastapi-mail
-pip install "passlib[bcrypt]"
+"passlib[bcrypt]"
