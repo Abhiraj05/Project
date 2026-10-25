@@ -5,6 +5,5 @@ from typing import Literal
 class UserSchema(BaseModel):
     name: str = Field(description="name of the user")
     email: str = Field(description="user email id")
-    phoneno: int = Field(description="user phoneno")
     gender: Literal["Male", "Female"] = Field(description="user gender")
-    password: str = Field(description="user password")
+    password: str = Field(min_length=8, max_length=128, description="user password")
