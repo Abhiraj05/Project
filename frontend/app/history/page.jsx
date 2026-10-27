@@ -6,8 +6,15 @@ import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { initialTrips, formatMoney } from "@/lib/travel";
+import axios from "axios";
 
-const filters = ["All trips", "Upcoming", "Completed", "Booking requested", "Awaiting approval"];
+const filters = [
+  "All trips",
+  "Upcoming",
+  "Completed",
+  "Booking requested",
+  "Awaiting approval",
+];
 
 export default function HistoryPage() {
   const [trips, setTrips] = useState(initialTrips);
@@ -15,13 +22,21 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState("grid");
 
-  const filteredTrips = useMemo(() => trips.filter((trip) => {
-    const matchesStatus = filter === "All trips" || trip.status === filter;
-    const matchesSearch = `${trip.destination} ${(trip.categories || []).join(" ")}`.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
-  }), [trips, filter, search]);
+  const filteredTrips = useMemo(
+    () =>
+      trips.filter((trip) => {
+        const matchesStatus = filter === "All trips" || trip.status === filter;
+        const matchesSearch =
+          `${trip.destination} ${(trip.categories || []).join(" ")}`
+            .toLowerCase()
+            .includes(search.toLowerCase());
+        return matchesStatus && matchesSearch;
+      }),
+    [trips, filter, search],
+  );
 
-  const removeTrip = (id) => setTrips((current) => current.filter((trip) => trip.id !== id));
+  const removeTrip = (id) =>
+    setTrips((current) => current.filter((trip) => trip.id !== id));
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -32,7 +47,7 @@ export default function HistoryPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.35 }}
-          className="relative mx-auto max-w-[1500px] px-5 py-8 sm:px-8 lg:px-10"
+          className="relative mx-auto max-w-375 px-5 py-8 sm:px-8 lg:px-10"
         >
           <motion.div
             aria-hidden="true"
@@ -51,7 +66,9 @@ export default function HistoryPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
                 Your travel journal
               </p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight">My trips</h1>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight">
+                My trips
+              </h1>
               <p className="mt-2 text-sm text-slate-400">
                 All your planned getaways, in one place.
               </p>
@@ -85,14 +102,21 @@ export default function HistoryPage() {
               {
                 label: "Upcoming",
                 value: trips.filter((trip) =>
-                  ["Upcoming", "Booking requested", "Awaiting approval"].includes(trip.status)
+                  [
+                    "Upcoming",
+                    "Booking requested",
+                    "Awaiting approval",
+                  ].includes(trip.status),
                 ).length,
                 icon: "🗓️",
               },
               {
                 label: "Total planned budget",
                 value: formatMoney(
-                  trips.reduce((sum, trip) => sum + (Number(trip.budget) || 0), 0)
+                  trips.reduce(
+                    (sum, trip) => sum + (Number(trip.budget) || 0),
+                    0,
+                  ),
                 ),
                 icon: "💳",
               },
@@ -105,7 +129,7 @@ export default function HistoryPage() {
                 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 whileHover={{ y: -3, borderColor: "rgba(96,165,250,0.3)" }}
-                className="rounded-2xl border border-white/[0.08] bg-slate-900/70 p-5 transition-colors"
+                className="rounded-2xl border border-white/8 bg-slate-900/70 p-5 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-slate-400">{item.label}</p>
@@ -125,11 +149,13 @@ export default function HistoryPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="rounded-2xl border border-white/[0.08] bg-slate-900/60 p-4 sm:p-5"
+            className="rounded-2xl border border-white/8 bg-slate-900/60 p-4 sm:p-5"
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-sm">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                  ⌕
+                </span>
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -148,7 +174,7 @@ export default function HistoryPage() {
                     className={`rounded-lg px-3 py-2 text-xs transition ${
                       filter === item
                         ? "bg-blue-500/15 font-medium text-blue-300"
-                        : "text-slate-500 hover:bg-white/[0.04] hover:text-white"
+                        : "text-slate-500 hover:bg-white/4 hover:text-white"
                     }`}
                   >
                     {item}
@@ -162,7 +188,9 @@ export default function HistoryPage() {
                   onClick={() => setView("grid")}
                   aria-label="Grid view"
                   className={`rounded-lg px-3 py-2 text-xs transition ${
-                    view === "grid" ? "bg-white/10 text-white" : "text-slate-500"
+                    view === "grid"
+                      ? "bg-white/10 text-white"
+                      : "text-slate-500"
                   }`}
                 >
                   ▦
@@ -172,7 +200,9 @@ export default function HistoryPage() {
                   onClick={() => setView("list")}
                   aria-label="List view"
                   className={`rounded-lg px-3 py-2 text-xs transition ${
-                    view === "list" ? "bg-white/10 text-white" : "text-slate-500"
+                    view === "list"
+                      ? "bg-white/10 text-white"
+                      : "text-slate-500"
                   }`}
                 >
                   ☰
@@ -189,7 +219,9 @@ export default function HistoryPage() {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.2 }}
                   className={`mt-5 ${
-                    view === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"
+                    view === "grid"
+                      ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                      : "space-y-3"
                   }`}
                 >
                   {filteredTrips.map((trip, index) => (
@@ -203,25 +235,39 @@ export default function HistoryPage() {
                         opacity: { duration: 0.25, delay: index * 0.04 },
                         layout: { duration: 0.25 },
                       }}
-                      whileHover={{ y: -3, borderColor: "rgba(96,165,250,0.28)" }}
-                      className={`overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/50 transition-colors ${
+                      whileHover={{
+                        y: -3,
+                        borderColor: "rgba(96,165,250,0.28)",
+                      }}
+                      className={`overflow-hidden rounded-2xl border border-white/8 bg-slate-950/50 transition-colors ${
                         view === "list" ? "flex flex-col sm:flex-row" : ""
                       }`}
                     >
                       <div
-                        className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-slate-800 ${
+                        className={`relative flex items-center justify-center overflow-hidden bg-linear-to-br from-blue-500/20 via-indigo-500/10 to-slate-800 ${
                           view === "grid" ? "h-36" : "h-28 sm:h-auto sm:w-44"
                         }`}
                       >
                         <motion.div
                           aria-hidden="true"
-                          animate={{ scale: [1, 1.08, 1], opacity: [0.45, 0.75, 0.45] }}
-                          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                          animate={{
+                            scale: [1, 1.08, 1],
+                            opacity: [0.45, 0.75, 0.45],
+                          }}
+                          transition={{
+                            duration: 6,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
                           className="absolute -right-6 -top-8 h-32 w-32 rounded-full bg-blue-400/10 blur-2xl"
                         />
                         <motion.span
                           whileHover={{ scale: 1.12, rotate: 4 }}
-                          transition={{ type: "spring", stiffness: 250, damping: 16 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 250,
+                            damping: 16,
+                          }}
                           className="relative text-5xl"
                         >
                           {trip.icon || "✈️"}
@@ -231,8 +277,8 @@ export default function HistoryPage() {
                             trip.status === "Completed"
                               ? "bg-emerald-500/15 text-emerald-300"
                               : trip.status === "Upcoming"
-                              ? "bg-blue-500/15 text-blue-300"
-                              : "bg-amber-500/15 text-amber-300"
+                                ? "bg-blue-500/15 text-blue-300"
+                                : "bg-amber-500/15 text-amber-300"
                           }`}
                         >
                           {trip.status}
@@ -242,7 +288,9 @@ export default function HistoryPage() {
                       <div className="flex min-w-0 flex-1 flex-col p-4">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <h2 className="truncate font-semibold">{trip.destination}</h2>
+                            <h2 className="truncate font-semibold">
+                              {trip.destination}
+                            </h2>
                             <p className="mt-1 text-xs text-slate-500">
                               ▦ &nbsp;{trip.dates || "Dates to be confirmed"}
                             </p>
@@ -270,15 +318,18 @@ export default function HistoryPage() {
                           ))}
                         </div>
 
-                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/[0.06] pt-4">
+                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/6 pt-4">
                           <div>
                             <p className="text-[10px] uppercase tracking-wider text-slate-600">
                               Planned budget
                             </p>
-                            <p className="mt-1 font-semibold">{formatMoney(trip.budget)}</p>
+                            <p className="mt-1 font-semibold">
+                              {formatMoney(trip.budget)}
+                            </p>
                           </div>
                           <p className="text-xs text-slate-500">
-                            {trip.travelers || 1} traveler{trip.travelers === 1 ? "" : "s"}
+                            {trip.travelers || 1} traveler
+                            {trip.travelers === 1 ? "" : "s"}
                           </p>
                         </div>
                       </div>
@@ -295,7 +346,11 @@ export default function HistoryPage() {
                 >
                   <motion.div
                     animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                     className="text-4xl"
                   >
                     🧭
@@ -326,7 +381,8 @@ export default function HistoryPage() {
             transition={{ delay: 0.3, duration: 0.4 }}
             className="mt-4 text-xs text-slate-600"
           >
-            Trip history is stored in page state for this demo and resets when the page reloads.
+            Trip history is stored in page state for this demo and resets when
+            the page reloads.
           </motion.p>
         </motion.div>
       </div>

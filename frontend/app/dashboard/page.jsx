@@ -7,12 +7,14 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import TripPlanningForm from "@/components/dashboard/TripPlanningForm";
 import TripProposalCard from "@/components/dashboard/TripProposalCard";
 import TripHistory from "@/components/dashboard/TripHistory";
+import axios from "axios";
 
 const starterPrompts = [
   {
     title: "Plan a trip",
     description: "Create a personalized travel itinerary.",
-    prompt: "Help me plan a trip. Ask me for my destination, duration, budget, and interests.",
+    prompt:
+      "Help me plan a trip. Ask me for my destination, duration, budget, and interests.",
     icon: "✈️",
   },
   {
@@ -77,7 +79,7 @@ function getDuration(startDate, endDate, fallback = 3) {
 
   return Math.max(
     1,
-    Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1
+    Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1,
   );
 }
 
@@ -131,7 +133,7 @@ function createPlan(details) {
   const duration = getDuration(
     details.startDate,
     details.endDate,
-    details.duration || 3
+    details.duration || 3,
   );
 
   const accommodation = Math.round(budget * 0.35);
@@ -155,11 +157,7 @@ function createPlan(details) {
     estimatedTotal: budget,
     categories: [...details.categories],
     status: "Awaiting approval",
-    itinerary: makeItinerary(
-      details.destination,
-      duration,
-      details.categories
-    ),
+    itinerary: makeItinerary(details.destination, duration, details.categories),
     costs: [
       { label: "Accommodation", amount: accommodation, icon: "🏨" },
       { label: "Transportation", amount: transportation, icon: "✈️" },
@@ -184,14 +182,14 @@ function getCategories(text) {
 
   return mapping
     .filter(([, keywords]) =>
-      keywords.some((keyword) => lower.includes(keyword))
+      keywords.some((keyword) => lower.includes(keyword)),
     )
     .map(([category]) => category);
 }
 
 function extractBudget(text) {
   const match = text.match(
-    /(?:₹|rs\.?\s*|inr\s*)\s*([\d,]+)|(?:budget|spend|cost|under|within|around|approximately|approx\.?)\s*(?:of\s*)?(?:₹|rs\.?\s*|inr\s*)?([\d,]+)/i
+    /(?:₹|rs\.?\s*|inr\s*)\s*([\d,]+)|(?:budget|spend|cost|under|within|around|approximately|approx\.?)\s*(?:of\s*)?(?:₹|rs\.?\s*|inr\s*)?([\d,]+)/i,
   );
 
   const value = match?.[1] || match?.[2];
@@ -204,16 +202,14 @@ function extractBudget(text) {
 }
 
 function extractDuration(text) {
-  const match = text.match(
-    /(\d+)\s*(?:-\s*)?(?:days?|nights?)/i
-  );
+  const match = text.match(/(\d+)\s*(?:-\s*)?(?:days?|nights?)/i);
 
   return match ? Math.max(1, Math.min(30, Number(match[1]))) : null;
 }
 
 function extractTravelers(text) {
   const match = text.match(
-    /(\d+)\s*(?:people|persons|travelers|travellers|adults|members|guests)/i
+    /(\d+)\s*(?:people|persons|travelers|travellers|adults|members|guests)/i,
   );
 
   if (match) {
@@ -244,9 +240,7 @@ function extractDestination(text) {
       ) {
         return value
           .split(/\s+/)
-          .map((word) =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-          )
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
       }
     }
@@ -257,7 +251,7 @@ function extractDestination(text) {
 
 function extractDates(text) {
   const match = text.match(
-    /\b(\d{4}-\d{2}-\d{2})\s*(?:to|through|until|-)\s*(\d{4}-\d{2}-\d{2})\b/i
+    /\b(\d{4}-\d{2}-\d{2})\s*(?:to|through|until|-)\s*(\d{4}-\d{2}-\d{2})\b/i,
   );
 
   if (!match) return null;
@@ -292,7 +286,7 @@ function updateDetailsFromMessage(text, previous) {
 
   const isCategoryModification =
     /\b(add|include|focus on|more|prefer|interested in|change.*(?:activity|interest|style)|switch to)\b/i.test(
-      text
+      text,
     );
 
   if (categoriesFound.length > 0) {
@@ -310,18 +304,17 @@ function updateDetailsFromMessage(text, previous) {
   }
 
   const removeMatch = lower.match(
-    /\b(?:remove|exclude|without|no more)\s+(adventure|culture|food|relaxation|nature|shopping)\b/i
+    /\b(?:remove|exclude|without|no more)\s+(adventure|culture|food|relaxation|nature|shopping)\b/i,
   );
 
   if (removeMatch) {
     const category = categories.find(
-      (item) =>
-        item.name.toLowerCase() === removeMatch[1].toLowerCase()
+      (item) => item.name.toLowerCase() === removeMatch[1].toLowerCase(),
     );
 
     if (category) {
       updated.categories = updated.categories.filter(
-        (item) => item !== category.name
+        (item) => item !== category.name,
       );
     }
   }
@@ -360,7 +353,8 @@ function getMissingDetails(details) {
   if (!details.destination) missing.push("destination");
   if (!details.budget || details.budget <= 0) missing.push("budget");
   if (!details.duration || details.duration <= 0) missing.push("trip duration");
-  if (!details.travelers || details.travelers < 1) missing.push("number of travelers");
+  if (!details.travelers || details.travelers < 1)
+    missing.push("number of travelers");
   if (!details.categories.length) missing.push("travel interests");
 
   return missing;
@@ -372,7 +366,7 @@ function formatMissingDetails(missing) {
   }
 
   return `I'm almost ready to create your proposal! Please tell me your ${missing.join(
-    ", "
+    ", ",
   )}. You can share everything in one message.`;
 }
 
@@ -444,7 +438,7 @@ export default function DashboardPage() {
       activePlan &&
       activePlan.status === "Awaiting approval" &&
       /\b(approve this plan|i approve|approve|approved|confirm|confirmed|proceed|go ahead|book it|finalize)\b/i.test(
-        text
+        text,
       )
     ) {
       const approvedPlan = {
@@ -462,15 +456,14 @@ export default function DashboardPage() {
 
       setMessages((current) =>
         current.map((message) =>
-          message.type === "plan" &&
-          message.plan.id === approvedPlan.id
+          message.type === "plan" && message.plan.id === approvedPlan.id
             ? { ...message, plan: approvedPlan }
-            : message
-        )
+            : message,
+        ),
       );
 
       appendAssistantMessage(
-        `Your proposal for ${approvedPlan.destination} has been approved and saved to your trip history. The estimated budget is ${formatMoney(approvedPlan.estimatedTotal)}. Please note that this demo does not make real reservations.`
+        `Your proposal for ${approvedPlan.destination} has been approved and saved to your trip history. The estimated budget is ${formatMoney(approvedPlan.estimatedTotal)}. Please note that this demo does not make real reservations.`,
       );
 
       setNotice("Trip proposal approved and saved to session history.");
@@ -480,7 +473,7 @@ export default function DashboardPage() {
     // Handle requests to modify an existing proposal.
     const modificationIntent =
       /\b(change|modify|update|adjust|reduce|increase|add|remove|include|exclude|make it|instead|cheaper|more expensive|extend|shorten|different|switch|replace)\b/i.test(
-        text
+        text,
       );
 
     if (
@@ -495,7 +488,7 @@ export default function DashboardPage() {
         setDetails(updatedDetails);
 
         appendAssistantMessage(
-          `I can update your proposal. ${formatMissingDetails(missing)}`
+          `I can update your proposal. ${formatMissingDetails(missing)}`,
         );
 
         return;
@@ -544,7 +537,7 @@ export default function DashboardPage() {
         setDetails(updatedDetails);
 
         appendAssistantMessage(
-          `Let's create a revised proposal. ${formatMissingDetails(missing)}`
+          `Let's create a revised proposal. ${formatMissingDetails(missing)}`,
         );
 
         return;
@@ -582,10 +575,12 @@ export default function DashboardPage() {
     if (
       activePlan &&
       activePlan.status === "Awaiting approval" &&
-      /\b(ask me for final approval|please ask for final approval|request final approval|ready for final approval)\b/i.test(text)
+      /\b(ask me for final approval|please ask for final approval|request final approval|ready for final approval)\b/i.test(
+        text,
+      )
     ) {
       appendAssistantMessage(
-        `Your proposal for ${activePlan.destination} is ready for final review. If you are satisfied with the itinerary and estimated cost of ${formatMoney(activePlan.estimatedTotal)}, type "Approve this plan" to confirm. You can still request changes before approving.`
+        `Your proposal for ${activePlan.destination} is ready for final review. If you are satisfied with the itinerary and estimated cost of ${formatMoney(activePlan.estimatedTotal)}, type "Approve this plan" to confirm. You can still request changes before approving.`,
       );
       return;
     }
@@ -594,10 +589,12 @@ export default function DashboardPage() {
     if (
       activePlan &&
       activePlan.status === "Awaiting approval" &&
-      /\b(looks good|happy with (?:this|the) plan|i like (?:this|the) plan|this plan is good)\b/i.test(text)
+      /\b(looks good|happy with (?:this|the) plan|i like (?:this|the) plan|this plan is good)\b/i.test(
+        text,
+      )
     ) {
       appendAssistantMessage(
-        `I'm glad you like the proposal! Before I mark it approved, please type "Approve this plan" to give your explicit final approval. If you'd like any changes, just tell me what to update.`
+        `I'm glad you like the proposal! Before I mark it approved, please type "Approve this plan" to give your explicit final approval. If you'd like any changes, just tell me what to update.`,
       );
       return;
     }
@@ -678,13 +675,23 @@ export default function DashboardPage() {
     const endDate = planningForm.endDate;
     const travelers = Number(planningForm.travelers);
 
-    if (!destination || !startDate || !endDate || !Number.isFinite(budget) || budget <= 0) {
-      setPlanningFormError("Please complete the destination, dates, and a valid budget.");
+    if (
+      !destination ||
+      !startDate ||
+      !endDate ||
+      !Number.isFinite(budget) ||
+      budget <= 0
+    ) {
+      setPlanningFormError(
+        "Please complete the destination, dates, and a valid budget.",
+      );
       return;
     }
 
     if (endDate < startDate) {
-      setPlanningFormError("The return date must be on or after the departure date.");
+      setPlanningFormError(
+        "The return date must be on or after the departure date.",
+      );
       return;
     }
 
@@ -762,7 +769,6 @@ export default function DashboardPage() {
             className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-blue-500/[0.07] blur-[120px]"
           />
 
-          {/* Heading */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -795,7 +801,6 @@ export default function DashboardPage() {
             </motion.button>
           </motion.div>
 
-          {/* Summary */}
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
             {[
               {
@@ -833,24 +838,20 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Single AI assistant chat */}
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.12, ease: "easeOut" }}
-            className="overflow-hidden rounded-3xl border border-white/[0.08] bg-slate-900/70 shadow-2xl shadow-black/10"
+            className="overflow-hidden rounded-3xl border border-white/8 bg-slate-900/70 shadow-2xl shadow-black/10"
           >
-            {/* Chat header */}
             <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xl shadow-lg shadow-blue-500/20">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 text-xl shadow-lg shadow-blue-500/20">
                   ✦
                 </div>
 
                 <div>
-                  <h2 className="text-sm font-semibold">
-                    TravelAI Assistant
-                  </h2>
+                  <h2 className="text-sm font-semibold">TravelAI Assistant</h2>
 
                   <p className="mt-1 text-xs text-slate-500">
                     Plan · Modify · Review · Approve
@@ -864,8 +865,7 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {/* Conversation */}
-            <div className="max-h-[75vh] min-h-[450px] space-y-6 overflow-y-auto px-4 py-6 sm:px-6">
+            <div className="max-h-[75vh] min-h-112.5 space-y-6 overflow-y-auto px-4 py-6 sm:px-6">
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
@@ -895,7 +895,7 @@ export default function DashboardPage() {
                       <div
                         className={`inline-block rounded-2xl px-4 py-3 text-left text-sm leading-7 ${
                           message.role === "assistant"
-                            ? "rounded-tl-md border border-white/[0.06] bg-slate-800 text-slate-200"
+                            ? "rounded-tl-md border border-white/6 bg-slate-800 text-slate-200"
                             : "rounded-tr-md bg-blue-500 text-white"
                         }`}
                       >
@@ -905,7 +905,9 @@ export default function DashboardPage() {
                       <TripProposalCard
                         plan={message.plan}
                         formatMoney={formatMoney}
-                        onRequestApproval={() => sendMessage("Please ask me for final approval.")}
+                        onRequestApproval={() =>
+                          sendMessage("Please ask me for final approval.")
+                        }
                       />
                     )}
 
@@ -934,7 +936,7 @@ export default function DashboardPage() {
                     ✦
                   </div>
 
-                  <div className="flex gap-1 rounded-2xl rounded-tl-md border border-white/[0.06] bg-slate-800 px-4 py-4">
+                  <div className="flex gap-1 rounded-2xl rounded-tl-md border border-white/6 bg-slate-800 px-4 py-4">
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" />
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 [animation-delay:150ms]" />
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 [animation-delay:300ms]" />
@@ -945,9 +947,8 @@ export default function DashboardPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick prompts */}
             {messages.length === 1 && (
-              <div className="border-t border-white/[0.06] px-4 pb-5 sm:px-6">
+              <div className="border-t border-white/6 px-4 pb-5 sm:px-6">
                 <p className="mb-3 text-xs font-medium text-slate-500">
                   START WITH AN IDEA
                 </p>
@@ -964,11 +965,9 @@ export default function DashboardPage() {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         setInput(item.prompt);
-                        document
-                          .getElementById("travel-chat-input")
-                          ?.focus();
+                        document.getElementById("travel-chat-input")?.focus();
                       }}
-                      className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-slate-950/40 p-3 text-left text-xs text-slate-300 transition hover:border-blue-400/30 hover:bg-blue-500/[0.06]"
+                      className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-slate-950/40 p-3 text-left text-xs text-slate-300 transition hover:border-blue-400/30 hover:bg-blue-500/6"
                     >
                       <span className="text-lg">{item.icon}</span>
                       <span>{item.title}</span>
@@ -979,7 +978,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Chat input */}
             <motion.form
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -991,7 +989,7 @@ export default function DashboardPage() {
               className="border-t border-white/[0.07] bg-slate-950/50 p-4 sm:p-5"
             >
               {notice && (
-                <div className="mb-3 rounded-xl border border-blue-400/15 bg-blue-500/[0.06] px-4 py-3 text-xs text-blue-300">
+                <div className="mb-3 rounded-xl border border-blue-400/15 bg-blue-500/6 px-4 py-3 text-xs text-blue-300">
                   {notice}
                 </div>
               )}
@@ -1031,11 +1029,11 @@ export default function DashboardPage() {
           <TripHistory trips={trips} formatMoney={formatMoney} />
 
           <footer className="mt-12 border-t border-white/[0.07] py-6 text-center text-xs text-slate-600">
-            © {new Date().getFullYear()} TravelAI · Your journey, thoughtfully planned.
+            © {new Date().getFullYear()} TravelAI · Your journey, thoughtfully
+            planned.
           </footer>
         </div>
       </div>
     </main>
   );
 }
-

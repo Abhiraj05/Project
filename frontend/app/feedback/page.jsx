@@ -5,15 +5,15 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import axios from "axios";
 
 export default function Feedback() {
   const [rating, setRating] = useState(0);
 
   return (
     <>
-    <Navbar/>
+      <Navbar />
       <main className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-white">
-        {/* Animated Background Glow */}
         <motion.div
           animate={{
             opacity: [0.2, 0.45, 0.2],
@@ -40,9 +40,7 @@ export default function Feedback() {
           className="pointer-events-none absolute -right-32 bottom-20 -z-10 h-96 w-96 rounded-full bg-indigo-500/10 blur-[120px]"
         />
 
-        {/* Main Content */}
         <div className="mx-auto max-w-7xl px-6 pb-16 pt-28 lg:px-8">
-          {/* Back Button */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -63,7 +61,6 @@ export default function Feedback() {
             </Link>
           </motion.div>
 
-          {/* Feedback Container */}
           <div className="flex justify-center">
             <motion.div
               initial={{ opacity: 0, y: 40, scale: 0.97 }}
@@ -74,7 +71,6 @@ export default function Feedback() {
               }}
               className="relative w-full max-w-2xl"
             >
-              {/* Heading */}
               <div className="mb-8 text-center">
                 <motion.p
                   initial={{ opacity: 0, y: 15 }}
@@ -105,7 +101,6 @@ export default function Feedback() {
                 </motion.p>
               </div>
 
-              {/* Feedback Card */}
               <motion.div
                 initial={{ opacity: 0, y: 25 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -116,11 +111,9 @@ export default function Feedback() {
                 }}
                 className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl"
               >
-                {/* Card Glow */}
                 <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-blue-500/5 blur-[80px]" />
 
                 <div className="relative z-10">
-                  {/* Email Address */}
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -143,7 +136,6 @@ export default function Feedback() {
                     />
                   </motion.div>
 
-                  {/* Star Rating */}
                   <motion.div
                     initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -191,7 +183,6 @@ export default function Feedback() {
                     </div>
                   </motion.div>
 
-                  {/* Feedback Textarea */}
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -214,7 +205,6 @@ export default function Feedback() {
                     />
                   </motion.div>
 
-                  {/* Feedback Category */}
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -243,7 +233,6 @@ export default function Feedback() {
                     </select>
                   </motion.div>
 
-                  {/* Submit Button */}
                   <motion.button
                     type="button"
                     whileHover={{

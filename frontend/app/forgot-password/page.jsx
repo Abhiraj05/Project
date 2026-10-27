@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 export default function ForgotPassword() {
   const [emailSent, setEmailSent] = useState(false);
@@ -26,7 +27,7 @@ export default function ForgotPassword() {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]"
+        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-125 w-175 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]"
       />
 
       <motion.div
@@ -42,7 +43,6 @@ export default function ForgotPassword() {
         className="pointer-events-none absolute -bottom-20 -right-32 -z-10 h-80 w-80 rounded-full bg-indigo-500/10 blur-[100px]"
       />
 
-      {/* Main Content */}
       <div className="relative flex min-h-screen items-center justify-center px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 35, scale: 0.97 }}
@@ -53,7 +53,6 @@ export default function ForgotPassword() {
           }}
           className="w-full max-w-md"
         >
-          {/* Logo and Heading */}
           <div className="mb-8 text-center">
             <Link href="/" className="group inline-flex items-center gap-2">
               <motion.div
@@ -106,7 +105,6 @@ export default function ForgotPassword() {
             </motion.p>
           </div>
 
-          {/* Form Card */}
           <motion.div
             whileHover={{
               borderColor: "rgba(96,165,250,0.25)",
@@ -114,7 +112,6 @@ export default function ForgotPassword() {
             }}
             className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl"
           >
-            {/* Card Glow */}
             <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/5 blur-[80px]" />
 
             <AnimatePresence mode="wait">
@@ -128,7 +125,6 @@ export default function ForgotPassword() {
                   transition={{ duration: 0.3 }}
                   className="relative z-10"
                 >
-                  {/* Email Input */}
                   <label
                     htmlFor="email"
                     className="mb-2 block text-sm font-medium text-slate-300"
@@ -148,7 +144,6 @@ export default function ForgotPassword() {
                     className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                   />
 
-                  {/* Submit Button */}
                   <motion.button
                     type="submit"
                     whileHover={{
@@ -176,7 +171,6 @@ export default function ForgotPassword() {
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="relative z-10 text-center"
                 >
-                  {/* Success Icon */}
                   <motion.div
                     initial={{ scale: 0, rotate: -15 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -195,7 +189,7 @@ export default function ForgotPassword() {
                     Check your email
                   </h2>
 
-                  <p className="mt-3 break-words text-sm leading-6 text-slate-400">
+                  <p className="mt-3 wrap-break-word text-sm leading-6 text-slate-400">
                     We've sent password reset instructions to{" "}
                     <span className="font-medium text-blue-400">{email}</span>.
                     Check your inbox and follow the link to continue.
@@ -214,7 +208,6 @@ export default function ForgotPassword() {
               )}
             </AnimatePresence>
 
-            {/* Back to Sign In */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
