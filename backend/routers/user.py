@@ -13,9 +13,9 @@ router = APIRouter(prefix="/user",
 
 # gets user profile data
 @router.get("/profile")
-async def get_user_profile(user: UserProfileFetch, current_user=Depends(get_current_user), db: AsyncSession = Depends(create_db_connection)):
+async def get_user_profile(current_user=Depends(get_current_user), db: AsyncSession = Depends(create_db_connection)):
     try:
-        user_query = await db.execute(select(Users.name, Users.email, Users.gender, Users.age).where(Users.id == user.id))
+        user_query = await db.execute(select(Users.name, Users.email, Users.gender, Users.age).where(Users.id == current_user.id))
         is_old_user = user_query.mappings().first()
 
         if is_old_user is None:
