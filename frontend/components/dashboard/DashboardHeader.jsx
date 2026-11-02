@@ -10,7 +10,7 @@ export default function DashboardHeader() {
       animate={{ opacity: 1, y: 0 }}
       className="sticky top-0 z-30 border-b border-white/[0.07] bg-slate-950/90 backdrop-blur-xl"
     >
-      <div className="flex h-[76px] items-center justify-between px-5 sm:px-8">
+      <div className="flex h-19 items-center justify-between px-5 sm:px-8">
         <div>
           <p className="text-xs text-slate-500">Workspace / Dashboard</p>
           <h1 className="mt-1 text-lg font-semibold tracking-tight text-white">

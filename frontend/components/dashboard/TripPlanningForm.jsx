@@ -25,13 +25,18 @@ export default function TripPlanningForm({
       animate={{ opacity: 1, y: 0 }}
       className="ml-0 w-full max-w-2xl overflow-hidden rounded-2xl border border-blue-400/20 bg-slate-950/70 shadow-lg shadow-black/10 sm:ml-12"
     >
-      <div className="border-b border-white/[0.07] bg-gradient-to-r from-blue-500/[0.12] to-indigo-500/[0.08] p-5">
+      <div className="border-b border-white/[0.07] bg-linear-to-r from-blue-500/12 to-indigo-500/8 p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-xl">✈️</div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-xl">
+            ✈️
+          </div>
           <div>
-            <h3 className="font-semibold text-white">Plan a trip with TravelAI</h3>
+            <h3 className="font-semibold text-white">
+              Plan a trip with TravelAI
+            </h3>
             <p className="mt-1 text-xs leading-5 text-slate-400">
-              Fill in your trip details, then generate a proposal right here in the conversation.
+              Fill in your trip details, then generate a proposal right here in
+              the conversation.
             </p>
           </div>
         </div>
@@ -39,7 +44,12 @@ export default function TripPlanningForm({
 
       <form onSubmit={onSubmit} className="space-y-5 p-5">
         <div>
-          <label htmlFor="planner-destination" className="text-sm font-medium text-slate-200">Destination</label>
+          <label
+            htmlFor="planner-destination"
+            className="text-sm font-medium text-slate-200"
+          >
+            Destination
+          </label>
           <input
             id="planner-destination"
             type="text"
@@ -53,7 +63,12 @@ export default function TripPlanningForm({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="planner-start-date" className="text-sm font-medium text-slate-200">Departure date</label>
+            <label
+              htmlFor="planner-start-date"
+              className="text-sm font-medium text-slate-200"
+            >
+              Departure date
+            </label>
             <input
               id="planner-start-date"
               type="date"
@@ -65,7 +80,12 @@ export default function TripPlanningForm({
             />
           </div>
           <div>
-            <label htmlFor="planner-end-date" className="text-sm font-medium text-slate-200">Return date</label>
+            <label
+              htmlFor="planner-end-date"
+              className="text-sm font-medium text-slate-200"
+            >
+              Return date
+            </label>
             <input
               id="planner-end-date"
               type="date"
@@ -80,9 +100,16 @@ export default function TripPlanningForm({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="planner-budget" className="text-sm font-medium text-slate-200">Total budget (INR)</label>
+            <label
+              htmlFor="planner-budget"
+              className="text-sm font-medium text-slate-200"
+            >
+              Total budget (INR)
+            </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 mt-1 -translate-y-1/2 text-sm text-slate-400">₹</span>
+              <span className="absolute left-3 top-1/2 mt-1 -translate-y-1/2 text-sm text-slate-400">
+                ₹
+              </span>
               <input
                 id="planner-budget"
                 type="number"
@@ -96,23 +123,34 @@ export default function TripPlanningForm({
             </div>
           </div>
           <div>
-            <label htmlFor="planner-travelers" className="text-sm font-medium text-slate-200">Travelers</label>
+            <label
+              htmlFor="planner-travelers"
+              className="text-sm font-medium text-slate-200"
+            >
+              Travelers
+            </label>
             <select
               id="planner-travelers"
               value={form.travelers}
               onChange={(event) => updateField("travelers", event.target.value)}
               className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             >
-              {Array.from({ length: 20 }, (_, index) => index + 1).map((number) => (
-                <option key={number} value={number}>{number} {number === 1 ? "traveler" : "travelers"}</option>
-              ))}
+              {Array.from({ length: 20 }, (_, index) => index + 1).map(
+                (number) => (
+                  <option key={number} value={number}>
+                    {number} {number === 1 ? "traveler" : "travelers"}
+                  </option>
+                ),
+              )}
             </select>
           </div>
         </div>
 
         <div>
           <p className="text-sm font-medium text-slate-200">Travel interests</p>
-          <p className="mt-1 text-xs text-slate-500">Select one or more interests.</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Select one or more interests.
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {categories.map((category) => {
               const selected = form.categories.includes(category.name);
@@ -124,14 +162,19 @@ export default function TripPlanningForm({
                   aria-pressed={selected}
                   className={`rounded-full border px-3 py-2 text-xs font-medium transition ${selected ? "border-blue-400 bg-blue-500/15 text-blue-300" : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"}`}
                 >
-                  {selected ? "✓ " : "+ "}{category.icon} {category.name}
+                  {selected ? "✓ " : "+ "}
+                  {category.icon} {category.name}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-red-400">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -142,7 +185,8 @@ export default function TripPlanningForm({
           {!isTyping && <span aria-hidden="true">→</span>}
         </button>
         <p className="text-center text-[11px] leading-5 text-slate-500">
-          Your plan appears in this chat. You can request changes before giving explicit final approval.
+          Your plan appears in this chat. You can request changes before giving
+          explicit final approval.
         </p>
       </form>
     </motion.div>
