@@ -44,7 +44,7 @@ export default function Profile() {
       {loading && <Loader />}
 
       {!loading && (
-        <main className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-white">
+        <main className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-white pb-9">
           <motion.div
             animate={{
               opacity: [0.2, 0.4, 0.2],
@@ -116,7 +116,7 @@ export default function Profile() {
               className="mb-8 flex justify-start"
             >
               <button
-                onClick={() => handleNavigate("/")}
+                onClick={() => handleNavigate("/dashboard")}
                 className="group inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition-colors duration-300 hover:text-blue-400"
               >
                 <motion.span
@@ -125,7 +125,7 @@ export default function Profile() {
                 >
                   ←
                 </motion.span>
-                Back to home
+                Back to Dashboard
               </button>
             </motion.div>
           </div>
@@ -308,7 +308,6 @@ export default function Profile() {
               </motion.div>
             </div>
 
-            {/* Travel Preferences */}
             <motion.div
               variants={cardVariants}
               initial="hidden"
@@ -351,7 +350,6 @@ export default function Profile() {
               </div>
             </motion.div>
 
-            {/* Danger Zone */}
             <motion.div
               variants={cardVariants}
               initial="hidden"
