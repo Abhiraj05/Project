@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.types import interrupt
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import HumanMessage, AIMessage
-from agent.graph.agent import llm, tools, llm_with_tools
+from agent.agent_client import llm, tools, llm_with_tools
 
 
 async def main():
