@@ -1,17 +1,21 @@
-from mcp.server.fastmcp import FastMCP
-from tools.flights_tool import get_flights
-from tools.hotels_tool import get_hotels
-from tools.destinations_tool import get_destinations
-from tools.restaurants_tool import get_restaurants
-from tools.weather_tool import get_weather
+import os
+import asyncio
+from dotenv import load_dotenv
+from fastmcp import Client
 
-mcp = FastMCP("Mcp Server")
+load_dotenv()
+MCP_URL = os.getenv("MCP_URL")
 
-mcp.tool(get_destinations)
-mcp.tool(get_flights)
-mcp.tool(get_hotels)
-mcp.tool(get_restaurants)
-mcp.tool(get_weather)
+async def main():
 
-if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    async with Client(MCP_URL) as client:
+
+        tools = await client.list_tools()
+
+        for tool in tools:
+            print(f"Tool Name: {tool.name}")
+            print(f"Description: {tool.description}")
+            print(f"Input Schema: {tool.inputSchema}")
+            print("-" * 50)
+
+asyncio.run(main())

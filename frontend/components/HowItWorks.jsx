@@ -50,13 +50,12 @@ const stepVariants = {
   },
 };
 
-export default function HowItWorks() {
+export default function HowItWorks({ handleNavigate }) {
   return (
     <section
       id="how-it-works"
       className="relative isolate overflow-hidden border-y border-white/5 bg-slate-950 py-24"
     >
-      {/* Background Glow */}
       <motion.div
         animate={{
           opacity: [0.2, 0.45, 0.2],
@@ -84,7 +83,6 @@ export default function HowItWorks() {
       />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Heading */}
         <motion.div
           initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -124,7 +122,6 @@ export default function HowItWorks() {
           </motion.p>
         </motion.div>
 
-        {/* Steps */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -132,9 +129,6 @@ export default function HowItWorks() {
           viewport={{ once: true, amount: 0.2 }}
           className="relative mt-16 grid gap-8 md:grid-cols-3"
         >
-          {/* Connecting Line */}
-         
-
           {steps.map((step) => (
             <motion.div
               key={step.number}
@@ -145,9 +139,8 @@ export default function HowItWorks() {
                   duration: 0.25,
                 },
               }}
-              className="group relative rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition-colors duration-300 hover:border-blue-400/20 hover:bg-white/[0.04]"
+              className="group relative rounded-2xl border border-white/5 bg-white/2 p-6 transition-colors duration-300 hover:border-blue-400/20 hover:bg-white/4"
             >
-              {/* Step Number and Icon */}
               <div className="flex items-center justify-between">
                 <motion.span
                   whileHover={{
@@ -174,23 +167,19 @@ export default function HowItWorks() {
                 </motion.div>
               </div>
 
-              {/* Step Title */}
               <h3 className="mt-6 text-xl font-semibold text-white transition-colors duration-300 group-hover:text-blue-300">
                 {step.title}
               </h3>
 
-              {/* Step Description */}
               <p className="mt-3 text-sm leading-6 text-slate-400">
                 {step.description}
               </p>
 
-              {/* Bottom Accent */}
               <div className="mt-6 h-0.5 w-10 rounded-full bg-blue-500/40 transition-all duration-500 group-hover:w-20 group-hover:bg-blue-400" />
             </motion.div>
           ))}
         </motion.div>
 
-        {/* CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 45, scale: 0.98 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -199,9 +188,8 @@ export default function HowItWorks() {
             duration: 0.8,
             ease: "easeOut",
           }}
-          className="group relative mt-20 overflow-hidden rounded-3xl border border-blue-400/20 bg-gradient-to-r from-blue-500/10 via-slate-900 to-cyan-500/5 p-8 text-center shadow-2xl shadow-blue-950/20 sm:p-12"
+          className="group relative mt-20 overflow-hidden rounded-3xl border border-blue-400/20 bg-linear-to-r from-blue-500/10 via-slate-900 to-cyan-500/5 p-8 text-center shadow-2xl shadow-blue-950/20 sm:p-12"
         >
-          {/* CTA Background Glow */}
           <motion.div
             animate={{
               opacity: [0.15, 0.35, 0.15],
@@ -228,7 +216,6 @@ export default function HowItWorks() {
             className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-[100px]"
           />
 
-          {/* CTA Content */}
           <div className="relative z-10">
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -261,7 +248,6 @@ export default function HowItWorks() {
               you.
             </motion.p>
 
-            {/* CTA Button */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -269,7 +255,7 @@ export default function HowItWorks() {
               transition={{ duration: 0.6, delay: 0.45 }}
             >
               <motion.a
-                href="/signup"
+                onClick={() => handleNavigate("/signin")}
                 whileHover={{
                   scale: 1.05,
                   y: -3,
