@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field ,ConfigDict
 from datetime import date
 from typing import Literal
+from pydantic import model_validator
 
 TravelInterest = Literal[
     "adventure",
