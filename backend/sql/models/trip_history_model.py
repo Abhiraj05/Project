@@ -5,7 +5,7 @@ class TripHistory(Base):
     __tablename__ = "trip_history"
 
     id = Column(Integer , primary_key=True, nullable=False)
-    trip_id = Column(Integer, ForeignKey("trip_plan.id", ondelete="CASCADE"), nullable=False )
+    trip_id = Column(Integer, ForeignKey("custom_trip_plan.id", ondelete="CASCADE"), nullable=False )
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     status = Column(
