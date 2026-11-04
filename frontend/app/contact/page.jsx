@@ -56,7 +56,7 @@ export default function Feedback() {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (loading) return;
