@@ -78,6 +78,25 @@ def password_reset_successful_body(user_name: str, user_email: str):
     return email_body
 
 
+# password reset successful template
+def contact_body(user_name: str, category: str, feedback: str):
+    email_body = f""""""
+    env = Environment(
+
+        loader=FileSystemLoader("templates"),
+        autoescape=select_autoescape(["html", "xml"])
+    )
+
+    template = env.get_template("contact_email_template.html")
+
+    email_body = template.render(
+        user_name=user_name,
+        category=category,
+        feedback=feedback
+    )
+    return email_body
+
+
 # creates email job
 async def create_mail(email_sub, recipient_email, email_body):
     job = {
