@@ -5,13 +5,37 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 export default function ForgotPassword() {
   const router = useRouter();
   const [emailSent, setEmailSent] = useState(false);
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+  });
+
+  const [toast, setToast] = useState({
+    message: "",
+    type: "success",
+    show: false,
+  });
+
+  const showToast = (message, type = "success") => {
+    setToast({
+      message,
+      type,
+      show: true,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
 
   const handleNavigate = (route) => {
     setLoading(true);
@@ -21,13 +45,80 @@ export default function ForgotPassword() {
     }, 2000);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEmailSent(true);
+
+    if (loading) return;
+
+    const email = formData.email.trim();
+
+    if (!email) {
+      showToast("Please enter your email address.", "error");
+      return;
+    }
+
+    if (email.length > 254) {
+      showToast("Email address is too long.", "error");
+      return;
+    }
+
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+
+    if (!emailRegex.test(email)) {
+      showToast("Please enter a valid email address.", "error");
+      return false;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`,
+        {
+          email: formData.email.trim(),
+        },
+      );
+
+      showToast(
+        response.data?.message || "Password reset instructions have been sent.",
+        "success",
+      );
+
+      setEmailSent(true);
+    } catch (error) {
+      const detail =
+        error.response?.data?.detail || error.response?.data?.message;
+
+      const message =
+        typeof detail === "string"
+          ? detail
+          : "Unable to process your request. Please try again.";
+
+      showToast(message, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={closeToast}
+        duration={3000}
+      />
       {loading && <Loader />}
 
       {!loading && (
@@ -151,30 +242,35 @@ export default function ForgotPassword() {
                         id="email"
                         type="email"
                         name="email"
-                        required
+                        maxLength={254}
                         autoComplete="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formData.email}
+                        onChange={handleChange}
                         placeholder="you@example.com"
                         className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                       />
 
                       <motion.button
                         type="submit"
-                        whileHover={{
-                          scale: 1.02,
-                          y: -2,
-                          boxShadow: "0px 8px 25px rgba(59,130,246,0.25)",
-                        }}
-                        whileTap={{ scale: 0.97 }}
+                        disabled={loading}
+                        whileHover={
+                          !loading
+                            ? {
+                                scale: 1.02,
+                                y: -2,
+                                boxShadow: "0px 8px 25px rgba(59,130,246,0.25)",
+                              }
+                            : {}
+                        }
+                        whileTap={!loading ? { scale: 0.97 } : {}}
                         transition={{
                           type: "spring",
                           stiffness: 300,
                           damping: 15,
                         }}
-                        className="mt-5 w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400"
+                        className="mt-5 w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Send Reset Link →
+                        {loading ? "Sending..." : "Send Reset Link →"}
                       </motion.button>
                     </motion.form>
                   ) : (
@@ -216,7 +312,10 @@ export default function ForgotPassword() {
                         type="button"
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={() => setEmailSent(false)}
+                        onClick={() => {
+                          setEmailSent(false);
+                          setFormData({ email: "" });
+                        }}
                         className="mt-6 text-sm font-medium text-blue-400 transition-colors duration-300 hover:text-blue-300"
                       >
                         Try another email

@@ -5,12 +5,41 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 export default function SignIn() {
   const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
 
   const handleNavigate = (route) => {
     setLoading(true);
@@ -18,6 +47,89 @@ export default function SignIn() {
       setLoading(false);
       router.push(route);
     }, 2000);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (submitting) return;
+
+    const email = formData.email.trim();
+    const password = formData.password;
+
+    if (!email) {
+      showToast("Please enter your email address.", "error");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!password) {
+      showToast("Please enter your password.", "error");
+      return;
+    }
+
+    if (password.length < 8) {
+      showToast("Password must be at least 8 characters long.", "error");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`,
+        {
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        },
+      );
+
+      const data = response.data;
+
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+      }
+
+      showToast(data.message || "Login successful!", "success");
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 800);
+    } catch (error) {
+      const detail =
+        error.response?.data?.detail || error.response?.data?.message;
+
+      let message = "Unable to sign in. Please try again.";
+
+      if (typeof detail === "string") {
+        message = detail;
+      } else if (Array.isArray(detail)) {
+        message = detail.map((item) => item.msg || "Invalid input").join(", ");
+      } else if (error.request && !error.response) {
+        message = "Unable to connect to the server.";
+      } else if (error.message?.includes("API URL")) {
+        message = error.message;
+      }
+
+      showToast(message, "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const containerVariants = {
@@ -44,6 +156,14 @@ export default function SignIn() {
 
   return (
     <>
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+        duration={3000}
+      />
+
       {loading && <Loader />}
 
       {!loading && (
@@ -125,10 +245,7 @@ export default function SignIn() {
                 transition={{ duration: 0.3 }}
                 className="rounded-2xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-blue-950/20 backdrop-blur-xl"
               >
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="space-y-5"
-                >
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <motion.div variants={itemVariants}>
                     <label className="mb-2 block text-sm font-medium text-slate-300">
                       Email address
@@ -136,6 +253,10 @@ export default function SignIn() {
 
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      autoComplete="email"
                       placeholder="you@example.com"
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                     />
@@ -158,6 +279,10 @@ export default function SignIn() {
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        autoComplete="current-password"
                         placeholder="••••••••"
                         className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-16 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                       />
@@ -182,9 +307,10 @@ export default function SignIn() {
                     whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.2 }}
                     type="submit"
-                    className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-blue-400"
+                    disabled={submitting}
+                    className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Sign In
+                    {submitting ? "Signing In..." : "Sign In"}
                   </motion.button>
                 </form>
 

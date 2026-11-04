@@ -5,12 +5,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 export default function SignUp() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+  });
+
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleNavigate = (route) => {
     setLoading(true);
@@ -19,7 +29,135 @@ export default function SignUp() {
       router.push(route);
     }, 2000);
   };
-  
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (submitting) return;
+
+    const fullname = formData.fullname.trim();
+    const email = formData.email.trim();
+    const password = formData.password;
+
+    if (!fullname) {
+      showToast("Please enter your full name.", "error");
+      return;
+    }
+
+    if (fullname.length < 2) {
+      showToast("Full name must contain at least 2 characters.", "error");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email) {
+      showToast("Please enter your email address.", "error");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!password) {
+      showToast("Please enter a password.", "error");
+      return;
+    }
+
+    if (password.length < 8) {
+      showToast("Password must be at least 8 characters long.", "error");
+      return;
+    }
+
+    if (
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/\d/.test(password)
+    ) {
+      showToast(
+        "Use uppercase, lowercase, and a number in your password.",
+        "error",
+      );
+      return;
+    }
+
+    if (!agreedToTerms) {
+      showToast(
+        "Please accept the Terms of Service and Privacy Policy.",
+        "error",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+        {
+          fullname: formData.fullname.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        },
+      );
+
+      showToast(
+        response.data?.message || "Account created successfully.",
+        "success",
+      );
+
+      setTimeout(() => {
+        router.push("/signin");
+      }, 900);
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to create your account. Please try again.";
+
+      showToast(
+        Array.isArray(message)
+          ? message.map((item) => item.msg).join(", ")
+          : message,
+        "error",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const containerVariants = {
     hidden: { opacity: 0, y: 25 },
     visible: {
@@ -44,6 +182,13 @@ export default function SignUp() {
 
   return (
     <>
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+        duration={3000}
+      />
       {loading && <Loader />}
 
       {!loading && (
@@ -124,10 +269,7 @@ export default function SignUp() {
                 transition={{ duration: 0.3 }}
                 className="rounded-2xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-blue-950/20 backdrop-blur-xl"
               >
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="space-y-5"
-                >
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <motion.div variants={itemVariants}>
                     <label className="mb-2 block text-sm font-medium text-slate-300">
                       Full name
@@ -135,6 +277,10 @@ export default function SignUp() {
 
                     <input
                       type="text"
+                      name="fullname"
+                      value={formData.fullname}
+                      onChange={handleChange}
+                      autoComplete="name"
                       placeholder="John Doe"
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                     />
@@ -147,6 +293,10 @@ export default function SignUp() {
 
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      autoComplete="email"
                       placeholder="you@example.com"
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                     />
@@ -160,6 +310,10 @@ export default function SignUp() {
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        autoComplete="new-password"
                         placeholder="Create a strong password"
                         className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-16 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                       />
@@ -179,7 +333,12 @@ export default function SignUp() {
                     variants={itemVariants}
                     className="flex items-start gap-3 text-xs text-slate-500"
                   >
-                    <input type="checkbox" className="mt-0.5 accent-blue-500" />
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="mt-0.5 accent-blue-500"
+                    />
 
                     <span>
                       I agree to the{" "}
@@ -203,9 +362,10 @@ export default function SignUp() {
                     whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.2 }}
                     type="submit"
-                    className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-blue-400"
+                    disabled={submitting}
+                    className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Create Account
+                    {submitting ? "Creating Account..." : "Create Account"}
                   </motion.button>
                 </form>
 

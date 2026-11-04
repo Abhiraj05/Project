@@ -7,14 +7,37 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 export default function Feedback() {
   const router = useRouter();
-  const [rating, setRating] = useState(0);
-  const [emailSent, setEmailSent] = useState(false);
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    feedback: "",
+    category: "General feedback",
+  });
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  const showToast = (message, type = "success") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
 
   const handleNavigate = (route) => {
     setLoading(true);
@@ -23,8 +46,104 @@ export default function Feedback() {
       router.push(route);
     }, 2000);
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    const email = formData.email.trim();
+    const feedback = formData.feedback.trim();
+
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+
+    if (!email) {
+      showToast("Please enter your email address.", "error");
+      return;
+    }
+
+    if (email.length > 254) {
+      showToast("Email address is too long.", "error");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!feedback) {
+      showToast("Please enter your feedback.", "error");
+      return;
+    }
+
+    if (feedback.length < 10) {
+      showToast("Feedback must contain at least 10 characters.", "error");
+      return;
+    }
+
+    if (feedback.length > 2000) {
+      showToast("Feedback cannot exceed 2000 characters.", "error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/feedback/submit`,
+        {
+          email: formData.email.trim(),
+          feedback: formData.feedback.trim(),
+          category: formData.category,
+        },
+      );
+
+      showToast(
+        response.data?.message || "Feedback submitted successfully!",
+        "success",
+      );
+
+      setFormData({
+        email: "",
+        feedback: "",
+        category: "General feedback",
+      });
+    } catch (error) {
+      console.error("Feedback submission error:", error);
+
+      const detail = error.response?.data?.detail;
+
+      showToast(
+        typeof detail === "string"
+          ? detail
+          : "Unable to submit feedback. Please try again.",
+        "error",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={closeToast}
+        duration={3000}
+      />
       {loading && <Loader />}
 
       {!loading && (
@@ -150,57 +269,11 @@ export default function Feedback() {
                           name="email"
                           placeholder="you@example.com"
                           autoComplete="email"
+                          value={formData.email}
+                          onChange={handleChange}
                           className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                         />
                       </motion.div>
-
-                      <motion.div
-                        initial={{ opacity: 0, x: -15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                        className="mt-7"
-                      >
-                        <label className="text-sm font-medium text-slate-300">
-                          How was your experience?
-                        </label>
-
-                        <div className="mt-4 flex flex-wrap gap-3">
-                          {[1, 2, 3, 4, 5].map((value) => (
-                            <motion.button
-                              key={value}
-                              type="button"
-                              onClick={() => setRating(value)}
-                              whileHover={{
-                                scale: 1.12,
-                                y: -3,
-                              }}
-                              whileTap={{ scale: 0.85 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 350,
-                                damping: 12,
-                              }}
-                              aria-label={`Rate ${value} out of 5 stars`}
-                              aria-pressed={rating === value}
-                              className={`flex h-12 w-12 items-center justify-center rounded-xl border text-xl transition-colors duration-300 ${
-                                rating >= value
-                                  ? "border-blue-400 bg-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/10"
-                                  : "border-white/10 bg-white/5 text-slate-600 hover:border-blue-400/30 hover:text-blue-300"
-                              }`}
-                            >
-                              <motion.span
-                                animate={{
-                                  scale: rating >= value ? [1, 1.2, 1] : 1,
-                                }}
-                                transition={{ duration: 0.25 }}
-                              >
-                                ★
-                              </motion.span>
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -218,6 +291,9 @@ export default function Feedback() {
                           id="feedback"
                           name="feedback"
                           rows={6}
+                          maxLength={2000}
+                          value={formData.feedback}
+                          onChange={handleChange}
                           placeholder="Tell us what you liked or what we could improve..."
                           className="w-full resize-none rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                         />
@@ -239,7 +315,8 @@ export default function Feedback() {
                         <select
                           id="category"
                           name="category"
-                          defaultValue="General feedback"
+                          value={formData.category}
+                          onChange={handleChange}
                           className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition-all duration-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                         >
                           <option>General feedback</option>
@@ -253,12 +330,18 @@ export default function Feedback() {
 
                       <motion.button
                         type="button"
-                        whileHover={{
-                          scale: 1.02,
-                          y: -2,
-                          boxShadow: "0px 8px 25px rgba(59,130,246,0.25)",
-                        }}
-                        whileTap={{ scale: 0.97 }}
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        whileHover={
+                          !loading
+                            ? {
+                                scale: 1.02,
+                                y: -2,
+                                boxShadow: "0px 8px 25px rgba(59,130,246,0.25)",
+                              }
+                            : {}
+                        }
+                        whileTap={!loading ? { scale: 0.97 } : {}}
                         transition={{
                           type: "spring",
                           stiffness: 300,
@@ -266,9 +349,9 @@ export default function Feedback() {
                         }}
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-7 w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400"
+                        className="mt-7 w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        Submit Feedback →
+                        {loading ? "Submitting..." : "Submit Feedback →"}
                       </motion.button>
                     </div>
                   </motion.div>

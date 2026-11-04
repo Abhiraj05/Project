@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 const preferences = [
@@ -18,6 +19,16 @@ const preferences = [
   "Photography",
 ];
 
+const travelStyles = [
+  "Adventure",
+  "Relaxation",
+  "Luxury",
+  "Culture",
+  "Budget",
+  "Family",
+];
+
+const budgets = ["Budget", "Mid-range", "Premium", "Luxury"];
 const cardVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -30,6 +41,293 @@ const cardVariants = {
 export default function Profile() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    travel_style: "Adventure",
+    budget: "Budget",
+  });
+
+  const [selectedPreferences, setSelectedPreferences] = useState([]);
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
+
+  const getApiUrl = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!apiUrl) {
+      throw new Error("API URL is not configured.");
+    }
+
+    return apiUrl;
+  };
+
+  const getToken = () => {
+    return localStorage.getItem("access_token");
+  };
+
+  const getAuthConfig = () => {
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("Please sign in to continue.");
+    }
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(
+          `${getApiUrl()}/auth/get-profile`,
+          getAuthConfig(),
+        );
+
+        if (cancelled) return;
+
+        const user = response.data?.user ?? response.data;
+
+        setFormData({
+          fullname: user.fullname ?? user.name ?? "",
+          email: user.email ?? "",
+          travel_style: user.travel_style ?? "Adventure",
+          budget: user.budget ?? "Budget",
+        });
+
+        setSelectedPreferences(
+          Array.isArray(user.preferences) ? user.preferences : [],
+        );
+      } catch (error) {
+        if (cancelled) return;
+
+        const status = error.response?.status;
+
+        const message =
+          error.response?.data?.detail ||
+          error.response?.data?.message ||
+          error.message ||
+          "Unable to load profile.";
+
+        if (status === 401 || status === 403) {
+          showToast("Your session has expired. Please sign in again.", "error");
+
+          localStorage.removeItem("access_token");
+
+          setTimeout(() => {
+            router.replace("/signin");
+          }, 1200);
+        } else {
+          showToast(message, "error");
+        }
+      } finally {
+        if (!cancelled) {
+          setFetching(false);
+        }
+      }
+    };
+
+    fetchProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  const togglePreference = (item) => {
+    setSelectedPreferences((prev) =>
+      prev.includes(item)
+        ? prev.filter((preference) => preference !== item)
+        : [...prev, item],
+    );
+  };
+
+  const handleSaveChanges = async () => {
+    if (saving) return;
+
+    const fullname = formData.fullname.trim();
+    const email = formData.email.trim();
+
+    if (!fullname) {
+      showToast("Please enter your full name.", "error");
+      return;
+    }
+
+    if (fullname.length < 2) {
+      showToast("Name must contain at least 2 characters.", "error");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email) {
+      showToast("Please enter your email.", "error");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      showToast("Please enter a valid email.", "error");
+      return;
+    }
+
+    if (!travelStyles.includes(formData.travel_style)) {
+      showToast("Please select a valid travel style.", "error");
+      return;
+    }
+
+    if (!budgets.includes(formData.budget)) {
+      showToast("Please select a valid budget.", "error");
+      return;
+    }
+
+    if (selectedPreferences.some((item) => !preferences.includes(item))) {
+      showToast("Invalid travel preference selected.", "error");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const response = await axios.put(
+        `${getApiUrl()}/auth/update-profile`,
+        {
+          fullname: formData.fullname.trim(),
+          email: formData.email.trim().toLowerCase(),
+          travel_style: formData.travel_style,
+          budget: formData.budget,
+          preferences: selectedPreferences,
+        },
+        getAuthConfig(),
+      );
+
+      showToast(
+        response.data?.message || "Profile updated successfully!",
+        "success",
+      );
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to update your profile.";
+
+      showToast(
+        typeof message === "string"
+          ? message
+          : "Please check your profile information.",
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleting) return;
+
+    setDeleting(true);
+
+    try {
+      const response = await axios.delete(
+        `${getApiUrl()}/auth/delete-account`,
+        getAuthConfig(),
+      );
+
+      localStorage.removeItem("access_token");
+
+      showToast(
+        response.data?.message || "Your account has been deleted.",
+        "success",
+      );
+
+      setTimeout(() => {
+        router.replace("/signup");
+      }, 1200);
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to delete your account.";
+
+      showToast(
+        typeof message === "string"
+          ? message
+          : "Unable to delete your account.",
+        "error",
+      );
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  // if (fetching) {
+  //   return (
+  //     <>
+  //       <Toast
+  //         show={toast.show}
+  //         message={toast.message}
+  //         type={toast.type}
+  //         onClose={closeToast}
+  //         duration={3000}
+  //       />
+
+  //       <main className="flex min-h-screen items-center justify-center bg-slate-950">
+  //         <Loader />
+  //       </main>
+  //     </>
+  //   );
+  // }
+
+  const initials =
+    formData.fullname
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase() || "U";
 
   const handleNavigate = (route) => {
     setLoading(true);
@@ -41,6 +339,13 @@ export default function Profile() {
 
   return (
     <>
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={closeToast}
+        duration={3500}
+      />
       {loading && <Loader />}
 
       {!loading && (
@@ -174,28 +479,20 @@ export default function Profile() {
                     whileHover={{ scale: 1.08, rotate: 3 }}
                     className="flex h-24 w-24 items-center justify-center rounded-full border border-blue-400/20 bg-blue-500/10 text-3xl font-bold text-blue-400 shadow-lg shadow-blue-500/10"
                   >
-                    JD
+                    {initials}
                   </motion.div>
 
                   <h2 className="mt-5 text-xl font-semibold text-white">
-                    John Doe
+                    {formData.fullname || "Your name"}
                   </h2>
 
                   <p className="mt-1 text-sm text-slate-400">
-                    john@example.com
+                    {formData.email}
                   </p>
 
-                  <motion.button
-                    whileHover={{
-                      scale: 1.03,
-                      borderColor: "rgba(96,165,250,0.4)",
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-6 w-full rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-slate-300 transition-colors duration-300 hover:bg-white/10 hover:text-white"
-                  >
-                    Change profile photo
-                  </motion.button>
+                  <div className="mt-6 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-400">
+                    TravelAI Member
+                  </div>
                 </div>
               </motion.div>
 
@@ -225,7 +522,12 @@ export default function Profile() {
 
                     <input
                       id="fullName"
-                      defaultValue="John Doe"
+                      name="fullname"
+                      type="text"
+                      value={formData.fullname}
+                      onChange={handleChange}
+                      placeholder="Your full name"
+                      autoComplete="name"
                       className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                     />
                   </div>
@@ -240,8 +542,12 @@ export default function Profile() {
 
                     <input
                       id="email"
+                      name="email"
                       type="email"
-                      defaultValue="john@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      autoComplete="email"
+                      placeholder="you@example.com"
                       className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all duration-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                     />
                   </div>
@@ -256,15 +562,16 @@ export default function Profile() {
 
                     <select
                       id="travelStyle"
-                      defaultValue="Adventure"
+                      name="travel_style"
+                      value={formData.travel_style}
+                      onChange={handleChange}
                       className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition-all duration-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                     >
-                      <option>Adventure</option>
-                      <option>Relaxation</option>
-                      <option>Luxury</option>
-                      <option>Culture</option>
-                      <option>Budget</option>
-                      <option>Family</option>
+                      {travelStyles.map((style) => (
+                        <option key={style} value={style}>
+                          {style}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -278,18 +585,24 @@ export default function Profile() {
 
                     <select
                       id="budget"
-                      defaultValue="Budget"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleChange}
                       className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition-all duration-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                     >
-                      <option>Budget</option>
-                      <option>Mid-range</option>
-                      <option>Premium</option>
-                      <option>Luxury</option>
+                      {budgets.map((budget) => (
+                        <option key={budget} value={budget}>
+                          {budget}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
                 <motion.button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleSaveChanges}
                   whileHover={{
                     scale: 1.04,
                     y: -2,
@@ -301,9 +614,9 @@ export default function Profile() {
                     stiffness: 300,
                     damping: 15,
                   }}
-                  className="mt-7 rounded-xl bg-blue-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400"
+                  className="mt-7 rounded-xl bg-blue-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-colors duration-300 hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Save changes →
+                  {saving ? "Saving..." : "Save changes →"}
                 </motion.button>
               </motion.div>
             </div>
@@ -328,26 +641,58 @@ export default function Profile() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                {preferences.map((item, index) => (
-                  <motion.button
-                    key={item}
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      duration: 0.3,
-                      delay: 0.35 + index * 0.06,
-                    }}
-                    whileHover={{
-                      scale: 1.06,
-                      y: -2,
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm text-blue-300 transition-colors duration-300 hover:border-blue-400/40 hover:bg-blue-400/20 hover:text-blue-200"
-                  >
-                    {item}
-                  </motion.button>
-                ))}
+                {preferences.map((item, index) => {
+                  const isSelected = selectedPreferences.includes(item);
+
+                  return (
+                    <motion.button
+                      key={item}
+                      type="button"
+                      aria-pressed={isSelected}
+                      initial={{
+                        opacity: 0,
+                        scale: 0.85,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                      }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.35 + index * 0.06,
+                      }}
+                      whileHover={{
+                        scale: 1.06,
+                        y: -2,
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => togglePreference(item)}
+                      className={`rounded-full border px-4 py-2 text-sm transition-colors duration-300 ${
+                        isSelected
+                          ? "border-blue-400/50 bg-blue-500/20 text-blue-200"
+                          : "border-blue-400/20 bg-blue-400/10 text-blue-300 hover:border-blue-400/40 hover:bg-blue-400/20 hover:text-blue-200"
+                      }`}
+                    >
+                      {isSelected ? "✓ " : ""}
+                      {item}
+                    </motion.button>
+                  );
+                })}
               </div>
+              <p className="mt-4 text-xs text-slate-500">
+                Selected: {selectedPreferences.length} preferences
+              </p>
+
+              <motion.button
+                type="button"
+                disabled={saving}
+                onClick={handleSaveChanges}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="mt-5 rounded-xl border border-blue-400/20 bg-blue-500/10 px-5 py-2.5 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save preferences"}
+              </motion.button>
             </motion.div>
 
             <motion.div
@@ -364,17 +709,48 @@ export default function Profile() {
                 data.
               </p>
 
-              <motion.button
-                whileHover={{
-                  scale: 1.03,
-                  backgroundColor: "rgba(239,68,68,0.12)",
-                }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.2 }}
-                className="mt-5 rounded-xl border border-red-500/30 px-5 py-2.5 text-sm font-medium text-red-400 transition-colors duration-300 hover:border-red-500/50"
-              >
-                Delete account
-              </motion.button>
+              {!showDeleteConfirm ? (
+                <motion.button
+                  type="button"
+                  whileHover={{
+                    scale: 1.03,
+                    backgroundColor: "rgba(239,68,68,0.12)",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="mt-5 rounded-xl border border-red-500/30 px-5 py-2.5 text-sm font-medium text-red-400 transition-colors duration-300 hover:border-red-500/50"
+                >
+                  Delete account
+                </motion.button>
+              ) : (
+                <div className="mt-5">
+                  <p className="text-sm text-red-300">
+                    Are you sure? This action may permanently delete your
+                    account and associated data.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={handleDeleteAccount}
+                      className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-400 disabled:opacity-50"
+                    >
+                      {deleting ? "Deleting..." : "Yes, delete my account"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </main>

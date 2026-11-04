@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 import axios from "axios";
 
 export default function ResetPassword() {
@@ -14,6 +15,32 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [toast, setToast] = useState({
+    message: "",
+    type: "success",
+    show: false,
+  });
+
+  const showToast = (message, type = "success") => {
+    setToast({
+      message,
+      type,
+      show: true,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
+
   const handleNavigate = (route) => {
     setLoading(true);
     setTimeout(() => {
@@ -22,9 +49,73 @@ export default function ResetPassword() {
     }, 2000);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccess(true);
+
+    const password = formData.password.trim();
+    const confirmPassword = formData.confirmPassword.trim();
+
+    if (!password.trim() || !confirmPassword.trim()) {
+      showToast("Please fill in all fields.", "error");
+      return;
+    }
+
+    if (password.length < 8) {
+      showToast("Password must contain at least 8 characters.", "error");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showToast("Password and confirm password do not match.", "error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
+        {
+          password: password,
+          confirm_password: confirmPassword,
+        },
+      );
+
+      showToast(
+        response.data?.message || "Password updated successfully.",
+        "success",
+      );
+
+      setFormData({
+        password: "",
+        confirmPassword: "",
+      });
+
+      setSuccess(true);
+    } catch (error) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Unable to reset password. Please try again.";
+
+      showToast(
+        typeof message === "string"
+          ? message
+          : "Unable to reset password. Please try again.",
+        "error",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const containerVariants = {
@@ -51,6 +142,13 @@ export default function ResetPassword() {
 
   return (
     <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={closeToast}
+        duration={3000}
+      />
       {loading && <Loader />}
 
       {!loading && (
@@ -151,8 +249,10 @@ export default function ResetPassword() {
                         <div className="relative">
                           <input
                             type={showPassword ? "text" : "password"}
-                            required
-                            minLength={8}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            autoComplete="new-password"
                             placeholder="Enter new password"
                             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-16 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                           />
@@ -180,8 +280,10 @@ export default function ResetPassword() {
                         <div className="relative">
                           <input
                             type={showConfirm ? "text" : "password"}
-                            required
-                            minLength={8}
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            autoComplete="new-password"
                             placeholder="Confirm new password"
                             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-16 text-sm outline-none transition duration-300 placeholder:text-slate-600 focus:border-blue-400 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-400/20"
                           />
@@ -199,15 +301,21 @@ export default function ResetPassword() {
 
                       <motion.button
                         type="submit"
-                        whileHover={{
-                          scale: 1.02,
-                          boxShadow: "0px 8px 25px rgba(59, 130, 246, 0.25)",
-                        }}
-                        whileTap={{ scale: 0.97 }}
+                        disabled={loading}
+                        whileHover={
+                          !loading
+                            ? {
+                                scale: 1.02,
+                                boxShadow:
+                                  "0px 8px 25px rgba(59, 130, 246, 0.25)",
+                              }
+                            : {}
+                        }
+                        whileTap={!loading ? { scale: 0.97 } : {}}
                         transition={{ duration: 0.2 }}
-                        className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-400"
+                        className="w-full rounded-xl bg-blue-500 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Update Password
+                        {loading ? "Updating Password..." : "Update Password"}
                       </motion.button>
                     </motion.form>
                   ) : (
