@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import auth,user,trips,chat,preference
+from routers import auth,user,trips,chat,preference,contact
 from middleware.cors import middleware
 
 
@@ -10,6 +10,8 @@ app.include_router(user.router)
 app.include_router(trips.router)
 app.include_router(chat.router)
 app.include_router(preference.router)
+app.include_router(contact.router)
+
 
 
 # middleware
